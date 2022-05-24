@@ -1,47 +1,58 @@
-import { useEffect, useState } from 'react'
+import { useReducer, useEffect } from 'react'
 
-const pinkRGB = `rgb(236, 72, 153)`
+const colors = {
+  pink: 'rgb(236, 72, 153)',
+  green: 'rgb(52, 211, 153)',
+  red: 'rgb(239, 68, 68)',
+}
+
+const initialCountColor = { count: 0, currentColor: colors.pink }
+
+function reduce(state, action) {
+  // console.log('state', state)
+  // console.log('action', action)
+  switch (action.type) {
+    case 'increment':
+      return { count: state.count + 1, currentColor: state.currentColor }
+
+    case 'decrement':
+      return { count: state.count - 1, currentColor: state.currentColor }
+    case 'reset':
+      return { count: 0, currentColor: state.currentColor }
+    case 'change':
+      return { count: state.count, currentColor: action.payload.color }
+    default:
+      throw new Error()
+  }
+}
 
 export default function Counter() {
-  const [count, setCount] = useState(0)
-  const [currentColor, setCurrentColor] = useState(pinkRGB)
+  const [countChange, dispatch] = useReducer(reduce, initialCountColor)
 
   useEffect(() => {
-    if (count === 0) {
-      setCurrentColor(pinkRGB)
+    if (countChange.count === 0) {
+      dispatch({ type: 'change', payload: { color: colors.pink } })
     }
 
-    if (count > 0) {
-      setCurrentColor(`rgb(52, 211, 153)`)
+    if (countChange.count > 0) {
+      dispatch({ type: 'change', payload: { color: colors.green } })
     }
 
-    if (count < 0) {
-      setCurrentColor(`rgb(239, 68, 68)`)
+    if (countChange.count < 0) {
+      dispatch({ type: 'change', payload: { color: colors.red } })
     }
-  }, [count])
-
-  const increment = () => {
-    setCount((prevState) => prevState + 1)
-  }
-
-  const decrement = () => {
-    setCount((prevState) => prevState - 1)
-  }
-
-  const reset = () => {
-    setCount(0)
-  }
+  }, [countChange.count])
 
   return (
     <main className="bg-black bg-opacity-90 min-h-screen flex flex-col items-center justify-center text-4xl text-pink-500">
-      <h1 className="mb-5" style={{ color: currentColor }}>
-        {count}
+      <h1 className="mb-5" style={{ color: countChange.currentColor }}>
+        {countChange.count}
       </h1>
       <div className="flex w-1/2 justify-around">
         <button
           className="text-green-400 border-2 border-green-400 p-3"
           type="button"
-          onClick={increment}
+          onClick={() => dispatch({ type: 'increment' })}
           aria-label="increment"
         >
           Increment
@@ -49,7 +60,7 @@ export default function Counter() {
         <button
           className="text-red-500 border-2 border-red-500 p-2"
           type="button"
-          onClick={decrement}
+          onClick={() => dispatch({ type: 'decrement' })}
           aria-label="decrement"
         >
           Decrement
@@ -58,7 +69,7 @@ export default function Counter() {
           className="text-pink-500 border-2 border-pink-500 p-2"
           type="button"
           aria-label="reset"
-          onClick={reset}
+          onClick={() => dispatch({ type: 'reset' })}
         >
           Reset
         </button>
